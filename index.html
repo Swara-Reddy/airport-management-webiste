@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyLink Airport | Official</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/history@5/umd/history.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.production.min.js" crossorigin></script>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, createContext, useContext, useRef } = React;
+    const { HashRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+    // ===================== DATA STORE =====================
+    const row1Cities = [
+      { name: 'Melbourne', img: 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be', sub: 'Best day trips' },
+      { name: 'Bangkok', img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429', sub: 'Street food paradise' },
+      { name: 'London', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad', sub: 'Royal heritage' },
+      { name: 'Paris', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34', sub: 'City of lights' },
+      { name: 'Rome', img: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5', sub: 'The eternal city' },
+      { name: 'Dubai', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c', sub: 'Desert luxury' }
+    ];
+    const row2Cities = [
+      { name: 'Singapore', img: 'https://images.unsplash.com/photo-1508964942454-1a56651d54ac', sub: 'Garden city' },
+      { name: 'Tokyo', img: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26', sub: 'Future awaits' },
+      { name: 'New York', img: 'https://images.unsplash.com/photo-1496449903678-68ddcb189a24', sub: 'The big apple' },
+      { name: 'Delhi', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5', sub: 'Capital vibes' },
+      { name: 'Chennai', img: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220', sub: 'Gateway to South' },
+      { name: 'Mumbai', img: 'https://images.unsplash.com/photo-1546708973-b339540b5162', sub: 'City of dreams' }
+    ];
+
+    const flightArrivals = [
+      ["00:10","SC8061","Shandong Airlines","Jinan (TNA)","T1","Belt 16","first"],
+      ["01:05","AI440","Air India","Delhi (DEL)","T2","Belt 12","ontime"],
+      ["02:30","EK502","Emirates","Dubai (DXB)","T1","Belt 05","delayed"],
+      ["03:10","BA256","British Airways","London (LHR)","T3","Belt 22","landed"],
+      ["04:25","QR908","Qatar Airways","Doha (DOH)","T2","Belt 18","ontime"],
+      ["05:40","LH778","Lufthansa","Frankfurt (FRA)","T1","Belt 09","landed"],
+      ["06:15","MH182","Malaysia Airlines","Kuala Lumpur (KUL)","T2","Belt 30","boarding"],
+      ["07:30","CX701","Cathay Pacific","Hong Kong (HKG)","T3","Belt 44","ontime"],
+      ["08:20","TG402","Thai Airways","Bangkok (BKK)","T1","Belt 07","delayed"],
+      ["09:45","SQ266","Singapore Airlines","Brisbane (BNE)","T3","Belt 41","belt"],
+      ["10:15","AF226","Air France","Paris (CDG)","T1","Belt 03","ontime"],
+      ["11:30","JL035","Japan Airlines","Tokyo (HND)","T2","Belt 14","ontime"]
+    ];
+
+    const flightDepartures = [
+      ["00:45","SQ500","Singapore Airlines","Singapore (SIN)","T3","Gate A1","boarding"],
+      ["01:30","AI101","Air India","Mumbai (BOM)","T2","Gate B4","ontime"],
+      ["02:55","EK215","Emirates","Dubai (DXB)","T1","Gate C2","delayed"],
+      ["03:40","BA118","British Airways","London (LHR)","T3","Gate A6","boarding"],
+      ["04:50","QR501","Qatar Airways","Doha (DOH)","T2","Gate B2","ontime"],
+      ["05:55","LH760","Lufthansa","Frankfurt (FRA)","T1","Gate C1","boarding"],
+      ["06:35","MH190","Malaysia Airlines","Kuala Lumpur (KUL)","T2","Gate B7","ontime"],
+      ["07:45","CX520","Cathay Pacific","Hong Kong (HKG)","T3","Gate A9","delayed"],
+      ["08:30","TG330","Thai Airways","Bangkok (BKK)","T1","Gate C4","boarding"],
+      ["09:25","JL720","Japan Airlines","Tokyo (NRT)","T2","Gate B1","ontime"],
+      ["10:50","AA153","American Airlines","New York (JFK)","T3","Gate A12","ontime"],
+      ["11:10","6E334","IndiGo","Chennai (MAA)","T2","Gate B9","boarding"]
+    ];
+
+    const dineData = [
+      { id: 'd1', name: '% Arabica', loc: 'Jewel', area: 'Public', cat: 'Cafe', tag: 'Cafe', sub: 'Jewel · #B2-05', img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93' },
+      { id: 'd2', name: '7 Café', loc: 'T3', area: 'Transit', cat: 'Fast Food', tag: 'Fast Food', sub: 'T3 · #02-12', img: 'https://images.unsplash.com/photo-1550547660-d9450f859349' },
+      { id: 'd3', name: 'BIMBA Y LOLA', loc: 'Jewel', area: 'Public', cat: 'Fashion', tag: 'Fashion', sub: 'Jewel · #01-253', img: 'https://images.unsplash.com/photo-1445205170230-053b83016050' },
+      { id: 'd4', name: 'Relax Spa', loc: 'T2', area: 'Public', cat: 'Spa', tag: 'Spa', sub: 'T2 · #03-55', img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874' },
+      { id: 'd5', name: 'Sky Gaming Arena', loc: 'T3', area: 'Transit', cat: 'Gaming Zone', tag: 'Gaming', sub: 'T3 · #02-88', img: 'https://images.unsplash.com/photo-1511512578047-dfb367046420' },
+      { id: 'd6', name: 'Pizza Hub', loc: 'T1', area: 'Transit', cat: 'Fast Food', tag: 'Pizza', sub: 'T1 · #02-33', img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38' },
+      { id: 'd7', name: 'Starbucks Reserve', loc: 'T2', area: 'Transit', cat: 'Cafe', tag: 'Coffee', sub: 'T2 · #02-10', img: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8' },
+      { id: 'd8', name: 'Hard Rock Cafe', loc: 'T1', area: 'Public', cat: 'Fast Food', tag: 'Diner', sub: 'T1 · #01-88', img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5' },
+      { id: 'd9', name: 'Sushi Express', loc: 'Jewel', area: 'Public', cat: 'Fast Food', tag: 'Asian', sub: 'Jewel · #B1-02', img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c' },
+      { id: 'd10', name: 'The Irish House', loc: 'T3', area: 'Transit', cat: 'Cafe', tag: 'Pub', sub: 'T3 · #03-15', img: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b' },
+      { id: 'd11', name: 'Burger King', loc: 'T1', area: 'Transit', cat: 'Fast Food', tag: 'Burger', sub: 'T1 · #02-09', img: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add' },
+      { id: 'd12', name: 'Duty Free Mega Store', loc: 'T2', area: 'Transit', cat: 'Fashion', tag: 'Shopping', sub: 'T2 · #02-50', img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d' }
+    ];
+
+    const expData = [
+      { id: 'e1', name: 'Delhi City Tour', loc: 'Jewel', area: 'Public', cat: 'Play', tag: 'Play', sub: 'Jewel · Level 1', img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5', badges: ['FEATURED'] },
+      { id: 'e2', name: '2 Bears Hideout', loc: 'T3', area: 'Transit', cat: 'Kids', tag: 'Kids', sub: 'T3 · Level 2', img: 'https://images.unsplash.com/photo-1608889175123-8ee362201f81', badges: [] },
+      { id: 'e3', name: 'Premium Lounge', loc: 'T3', area: 'Transit', cat: 'Relax', tag: 'Relax', sub: 'T3 · Level 1', img: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd', badges: [] },
+      { id: 'e4', name: 'Live Music Stage', loc: 'T2', area: 'Public', cat: 'Entertainment', tag: 'Music', sub: 'T2 · Level 1', img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30', badges: ['HIGHLIGHT'] },
+      { id: 'e5', name: 'Butterfly Garden', loc: 'T3', area: 'Transit', cat: 'Relax', tag: 'Nature', sub: 'T3 · Level 2', img: 'https://images.unsplash.com/photo-1550146747-062e5b988f4e', badges: ['POPULAR'] },
+      { id: 'e6', name: 'Aviation Museum', loc: 'T1', area: 'Public', cat: 'Entertainment', tag: 'History', sub: 'T1 · Level 3', img: 'https://images.unsplash.com/photo-1540962351504-03099e0a754b', badges: [] },
+      { id: 'e7', name: 'VR Gaming Center', loc: 'Jewel', area: 'Public', cat: 'Play', tag: 'Gaming', sub: 'Jewel · Level 4', img: 'https://images.unsplash.com/photo-1593508512255-86ab42a8e620', badges: ['NEW'] },
+      { id: 'e8', name: 'Spa Oasis', loc: 'T2', area: 'Transit', cat: 'Relax', tag: 'Wellness', sub: 'T2 · Level 2', img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874', badges: [] },
+      { id: 'e9', name: 'Sunflower Lounge', loc: 'T2', area: 'Transit', cat: 'Relax', tag: 'Lounge', sub: 'T2 · Level 3', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef', badges: ['SCENIC'] }
+    ];
+
+    // ===================== TRANSLATION DICTIONARY =====================
+    const translations = {
+      en: { welcome: "✈ Welcome to SkyLink Airport", fly: "Fly", book: "Book", dine: "Dine & Shop", exp: "Experience", help: "Help", login: "Login / Sign Up", heroSub: "HELLO FROM SKYLINK", heroTitle: "GO PLACES YOU'VE DREAMED OF", heroBtn: "Explore Flights", citiestitle: "EXPLORE CITIES WE ARE FLYING TO TODAY" },
+      hi: { welcome: "✈ स्काईलिंक हवाई अड्डे में आपका स्वागत है", fly: "उड़ानें", book: "बुक करें", dine: "भोजन और खरीदारी", exp: "अनुभव", help: "सहायता", login: "लॉगिन / साइन अप", heroSub: "स्काईलिंक से नमस्ते", heroTitle: "उन जगहों पर जाएं जिनका आपने सपना देखा है", heroBtn: "उड़ानें खोजें", citiestitle: "उन शहरों का अन्वेषण करें जहां हम आज उड़ान भर रहे हैं" }
+    };
+
+    // ===================== APP CONTEXT =====================
+    const AppContext = createContext();
+
+    const AppProvider = ({ children }) => {
+      const [isDark, setIsDark] = useState(false);
+      const [user, setUser] = useState(null);
+      const [bookedFlight, setBookedFlight] = useState(null); 
+      const [points, setPoints] = useState(0); 
+      const [wishlist, setWishlist] = useState([]); 
+      const [toasts, setToasts] = useState([]);
+      const [lang, setLang] = useState('en');
+
+      useEffect(() => {
+        const savedMode = localStorage.getItem('skylinkDark') === 'true';
+        setIsDark(savedMode);
+        if(savedMode) document.body.classList.add('dark-theme');
+      }, []);
+
+      const toggleTheme = () => {
+        setIsDark(!isDark);
+        localStorage.setItem('skylinkDark', !isDark);
+        if(!isDark) document.body.classList.add('dark-theme');
+        else document.body.classList.remove('dark-theme');
+      };
+
+      const addToast = (msg, type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, msg, type }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+      };
+
+      const toggleWishlist = (item) => {
+        if (wishlist.find(w => w.id === item.id)) {
+          setWishlist(wishlist.filter(w => w.id !== item.id)); 
+          addToast(`Removed ${item.name} from Itinerary`, "info");
+        } else {
+          setWishlist([...wishlist, item]); 
+          addToast(`Added ${item.name} to Itinerary!`, "success");
+        }
+      };
+
+      return (
+        <AppContext.Provider value={{ isDark, toggleTheme, user, setUser, bookedFlight, setBookedFlight, points, setPoints, wishlist, toggleWishlist, toasts, addToast, lang, setLang }}>
+          {children}
+        </AppContext.Provider>
+      );
+    };
+
+    // ===================== GLOBAL UI COMPONENTS =====================
+    const ToastContainer = () => {
+      const { toasts } = useContext(AppContext);
+      return (
+        <div className="toast-container">
+          {toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.type==='success'?'✅':t.type==='error'?'❌':'ℹ️'} {t.msg}</div>)}
+        </div>
+      );
+    };
+
+    const Navbar = () => {
+      const { isDark, toggleTheme, user, lang, setLang } = useContext(AppContext);
+      const [time, setTime] = useState(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+      const t = translations[lang];
+
+      useEffect(() => {
+        const interval = setInterval(() => setTime(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})), 60000);
+        return () => clearInterval(interval);
+      }, []);
+
+      return (
+        <>
+          <div className="topbar">
+            <h2>{t.welcome}</h2>
+            <div className="weather-widget">📍 Chennai | 🌤️ 32°C | 🕒 {time}</div>
+          </div>
+          <nav className="navbar">
+            <Link to="/" className="logo">✈ SkyLink</Link>
+            <ul className="nav-links">
+              <li><Link to="/flights">{t.fly}</Link></li>
+              <li><Link to="/booking">{t.book}</Link></li>
+              <li><Link to="/dine">{t.dine}</Link></li>
+              <li><Link to="/experience">{t.exp}</Link></li>
+              <li><Link to="/help">{t.help}</Link></li>
+            </ul>
+            <div className="nav-right">
+              <select className="lang-select" value={lang} onChange={(e) => setLang(e.target.value)}>
+                <option value="en">EN</option>
+                <option value="hi">HI</option>
+              </select>
+              <button onClick={toggleTheme} className="theme-toggle">
+                {isDark ? '☀️ Light' : '🌙 Dark'}
+              </button>
+              {user ? (
+                <Link to="/profile" className="login-btn-nav">👤 Hi, {user}</Link> 
+              ) : (
+                <Link to="/login" className="login-btn-nav">{t.login}</Link>
+              )}
+            </div>
+          </nav>
+        </>
+      );
+    };
+
+    const Footer = () => {
+      // FEATURE: Currency Converter Widget
+      const [amt, setAmt] = useState(1);
+      const [curr, setCurr] = useState('USD');
+      const rates = { USD: 83.5, EUR: 90.2, GBP: 105.4, AED: 22.7 };
+
+      return (
+        <footer className="mega-footer">
+          <div className="footer-container">
+            <div className="footer-col"><h4>Fly</h4><Link to="/flights">Flight Information</Link><Link to="/booking">Book a Flight</Link></div>
+            <div className="footer-col"><h4>At SkyLink</h4><Link to="/map">Terminal Map</Link><Link to="/baggage">Baggage Tracker</Link><Link to="/help">Facilities & Services</Link></div>
+            <div className="footer-col"><h4>Dine & Shop</h4><Link to="/dine">Dining</Link><Link to="/dine">Shopping</Link></div>
+            <div className="footer-col app-col">
+              <h4>Currency Converter</h4>
+              <div className="currency-widget">
+                <input type="number" value={amt} onChange={e=>setAmt(e.target.value)} min="1" />
+                <select value={curr} onChange={e=>setCurr(e.target.value)}><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option></select>
+                <span>= ₹{(amt * rates[curr]).toFixed(2)}</span>
+              </div>
+              <h4 style={{marginTop: '25px'}}>Follow Us</h4>
+              <div className="social-icons"><a href="https://www.facebook.com" target="_blank">FB</a> <a href="https://www.instagram.com" target="_blank">IG</a> <a href="https://www.linkedin.com" target="_blank">IN</a> <a href="https://twitter.com" target="_blank">X</a></div>
+            </div>
+          </div>
+          <div className="footer-bottom"><div className="footer-logo">✈ SkyLink Airport Group</div><div>© 2026 SkyLink Airport</div></div>
+        </footer>
+      );
+    };
+
+    const ScrollToTop = () => {
+      const [visible, setVisible] = useState(false);
+      useEffect(() => {
+        const toggleVis = () => setVisible(window.pageYOffset > 300);
+        window.addEventListener('scroll', toggleVis);
+        return () => window.removeEventListener('scroll', toggleVis);
+      }, []);
+      return (
+        <button className={`scroll-to-top ${visible ? 'visible' : ''}`} onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>↑</button>
+      );
+    };
+
+    const Chatbot = () => {
+      const { bookedFlight } = useContext(AppContext);
+      const [isOpen, setIsOpen] = useState(false);
+      const [msgs, setMsgs] = useState([{text: "Hi! I'm SkyBot. How can I assist you?", sender: 'bot'}]);
+      const [input, setInput] = useState('');
+      const msgEndRef = useRef(null);
+
+      useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, isOpen]);
+
+      const handleSend = () => {
+        if(!input.trim()) return;
+        setMsgs([...msgs, {text: input, sender: 'user'}]);
+        const query = input.toLowerCase();
+        setInput('');
+        
+        setTimeout(() => {
+          let reply = "Please check our Help page for more details!";
+          if(query.includes('wifi') || query.includes('internet')) reply = "Free Wi-Fi is available! Connect to '#SkyLinkFreeWiFi'.";
+          else if(query.includes('liquid') || query.includes('baggage')) reply = "Liquids must be under 100ml. Check baggage limits with your airline.";
+          else if(query.includes('lounge')) reply = "Premium lounges are located in Terminals 1, 2, and 3.";
+          // FEATURE: Smart Chatbot uses Context State!
+          else if(query.includes('my flight') || query.includes('where is my flight')) {
+            if(bookedFlight) reply = `You are flying to ${bookedFlight.to}. Your seat is ${bookedFlight.seat} in ${bookedFlight.cls} class. Check your Profile for the boarding pass!`;
+            else reply = "You don't have any flights booked yet. Click 'Book' in the menu!";
+          }
+          setMsgs(prev => [...prev, {text: reply, sender: 'bot'}]);
+        }, 800);
+      };
+      
+      return (
+        <>
+          <button className="chat-toggle" onClick={() => setIsOpen(!isOpen)}>💬</button>
+          <div className={`chatbot-container ${isOpen ? 'open' : ''}`}>
+            <div className="chatbot-header">SkyBot Support <span onClick={()=>setIsOpen(false)} style={{cursor:'pointer'}}>✖</span></div>
+            <div className="chatbot-messages">
+              {msgs.map((m, i) => <div key={i} className={`chat-msg ${m.sender}`}>{m.text}</div>)}
+              <div ref={msgEndRef} />
+            </div>
+            <div className="chatbot-input">
+              <input value={input} onChange={e=>setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Ask something..." />
+              <button onClick={handleSend}>Send</button>
+            </div>
+          </div>
+        </>
+      );
+    };
+
+    // ===================== MODALS =====================
+    const PlaceModal = ({ place, onClose }) => {
+      const { points, setPoints, addToast } = useContext(AppContext);
+      const [rating, setRating] = useState(0); // FEATURE: Interactive Ratings
+
+      if(!place) return null;
+
+      const redeemReward = () => {
+        if(points >= 200) {
+          setPoints(points - 200);
+          addToast("Voucher Redeemed! Saved to your account.", "success");
+        } else {
+          addToast("Not enough points! You need 200.", "error");
+        }
+      };
+
+      return (
+        <div className="modal-overlay show" onClick={onClose}>
+          <div className="place-modal-content" onClick={e => e.stopPropagation()}>
+            <span className="close-modal" onClick={onClose}>&times;</span>
+            <img id="modalImg" src={place.img} alt={place.name} />
+            <div className="modal-info">
+              <span className="tag">{place.tag}</span>
+              <h2 id="modalTitle">{place.name}</h2>
+              <p id="modalSub">{place.sub}</p>
+              
+              {/* INTERACTIVE RATINGS */}
+              <div className="star-rating">
+                {[1,2,3,4,5].map(star => (
+                  <span key={star} className={`star ${rating >= star ? 'active' : ''}`} onClick={() => setRating(star)}>★</span>
+                ))}
+              </div>
+
+              <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px'}}>
+                <Link to="/map" className="map-btn" onClick={onClose}>📍 View Map</Link>
+                {/* POINT REDEMPTION STORE */}
+                <button className="map-btn" style={{background: '#10b981', borderColor: '#10b981'}} onClick={redeemReward}>🎁 Redeem (200 pts)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CityModal = ({ city, onClose }) => {
+      if(!city) return null;
+      const attractions = [
+        {name: `${city.name} Historical Museum`, desc: "Explore the rich history and artifacts."},
+        {name: `Downtown ${city.name} Market`, desc: "Experience local food, culture, and souvenirs."},
+        {name: `${city.name} Grand Park`, desc: "A beautiful green space in the center of the city."}
+      ];
+
+      return (
+        <div className="modal-overlay show" onClick={onClose}>
+          <div className="city-modal-content" onClick={e => e.stopPropagation()}>
+            <span className="close-modal" onClick={onClose}>&times;</span>
+            <img src={city.img} style={{width: '100%', height: '200px', objectFit: 'cover'}} />
+            <div className="modal-info" style={{padding: '20px 30px 10px'}}>
+              <h2 id="modalTitle">Top Attractions in {city.name}</h2>
+              <p style={{color:'#666'}}>Plan your perfect trip.</p>
+            </div>
+            <div className="attraction-list">
+              {attractions.map((a, i) => (
+                <div key={i} className="attraction-item">
+                  <div><strong>{a.name}</strong><br/><span style={{fontSize:'13px', color:'#777'}}>{a.desc}</span></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ===================== PAGE COMPONENTS =====================
+
+    const Home = () => {
+      const navigate = useNavigate();
+      const { lang } = useContext(AppContext);
+      const t = translations[lang];
+      const [selectedCity, setSelectedCity] = useState(null);
+
+      return (
+        <div>
+          <section className="home-hero">
+            <div className="hero-overlay"></div>
+            <div className="hero-content">
+              <p className="hero-sub">{t.heroSub}</p>
+              <h1>{t.heroTitle}</h1>
+              <button onClick={() => navigate('/flights')} className="login-btn-nav" style={{padding: '15px 30px', fontSize: '18px', background: '#00d4ff', color: '#001f7a', border: 'none'}}>{t.heroBtn}</button>
+            </div>
+          </section>
+          <section className="changi-section">
+            <div className="changi-header"><h2>{t.citiestitle}</h2></div>
+            <div className="slider-mask">
+              <div className="slider-track left">
+                {[...row1Cities, ...row1Cities].map((city, idx) => (
+                  <div className="city-card" key={idx} onClick={() => setSelectedCity(city)}>
+                    <img src={`${city.img}?w=400`} alt={city.name} />
+                    <h3>{city.name.toUpperCase()}</h3>
+                    <p>{city.sub}</p>
+                    <div className="city-hover-overlay">View Attractions</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="slider-mask" style={{marginTop: '20px'}}>
+              <div className="slider-track right">
+                {[...row2Cities, ...row2Cities].map((city, idx) => (
+                  <div className="city-card" key={idx} onClick={() => setSelectedCity(city)}>
+                    <img src={`${city.img}?w=400`} alt={city.name} />
+                    <h3>{city.name.toUpperCase()}</h3>
+                    <p>{city.sub}</p>
+                    <div className="city-hover-overlay">View Attractions</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          <CityModal city={selectedCity} onClose={() => setSelectedCity(null)} />
+        </div>
+      );
+    };
+
+    // USER PROFILE DASHBOARD
+    const Profile = () => {
+      const { user, bookedFlight, points, wishlist, toggleWishlist } = useContext(AppContext);
+      
+      // FEATURE: Live Countdown Timer
+      const [timeLeft, setTimeLeft] = useState(7200); // 2 hours
+      useEffect(() => {
+         if(bookedFlight) {
+           const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
+           return () => clearInterval(timer);
+         }
+      }, [bookedFlight]);
+      const formatTime = (secs) => {
+         const h = String(Math.floor(secs / 3600)).padStart(2, '0');
+         const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+         const s = String(secs % 60).padStart(2, '0');
+         return `${h} : ${m} : ${s}`;
+      };
+
+      if(!user) return <div className="container"><div className="page-title">Please login to view your profile.</div></div>;
+
+      return (
+        <div className="container">
+          <div className="page-title">Welcome back, {user}!</div>
+          <div style={{background: 'linear-gradient(90deg, #0a1f44, #001f7a)', color: '#fff', padding: '20px 30px', borderRadius: '15px', display: 'inline-block', marginBottom: '30px', boxShadow: '0 10px 20px rgba(0,0,0,0.1)'}}>
+            <h3 style={{margin: 0, fontWeight: 500}}>SkyLink Rewards</h3>
+            <p style={{margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#00d4ff'}}>{points} PTS</p>
+          </div>
+          
+          <div className="section-title" style={{marginTop: 0}}>My Flights</div>
+          {bookedFlight ? (
+            <>
+              {/* THE MASSIVE COUNTDOWN TIMER */}
+              <div className="countdown-timer">⏳ Boarding in: {formatTime(timeLeft)}</div>
+              
+              <div className="boarding-pass">
+                <div className="bp-left">
+                  <div className="bp-header">SkyLink Airways • Passenger: {bookedFlight.name}</div>
+                  <div className="bp-route">
+                    <div className="bp-city">{bookedFlight.from.substring(0,3).toUpperCase()}</div>
+                    <div className="bp-plane">✈</div>
+                    <div className="bp-city">{bookedFlight.to.substring(0,3).toUpperCase()}</div>
+                  </div>
+                  <div className="bp-details">
+                    <div className="bp-detail-box"><p>Date</p><h4>{bookedFlight.date}</h4></div>
+                    <div className="bp-detail-box"><p>Class</p><h4>{bookedFlight.cls}</h4></div>
+                    <div className="bp-detail-box"><p>Seat</p><h4>{bookedFlight.seat}</h4></div>
+                  </div>
+                </div>
+                <div className="bp-right">
+                  <div className="bp-detail-box"><p>Gate</p><h4>TBD</h4></div>
+                  <div className="barcode"></div>
+                </div>
+              </div>
+            </>
+          ) : <p style={{color: '#666'}}>No upcoming flights. <Link to="/booking" style={{color:'#00d4ff', fontWeight: 'bold'}}>Book one now!</Link></p>}
+
+          <div className="section-title">My Itinerary (Saved Places)</div>
+          <div className="card-grid">
+            {wishlist.length > 0 ? wishlist.map(item => (
+              <div className="card" key={item.id}>
+                <button className="heart-btn saved" onClick={() => toggleWishlist(item)}>❤️</button>
+                <img src={item.img} />
+                <div className="card-body">
+                  <span className="tag">{item.tag}</span>
+                  <div className="card-title">{item.name}</div>
+                  <div className="card-sub">{item.sub}</div>
+                </div>
+              </div>
+            )) : <p style={{color: '#666', gridColumn: '1 / -1'}}>Your wishlist is empty. Tap the heart icon on Dine & Experience cards to save them here!</p>}
+          </div>
+        </div>
+      );
+    };
+
+    const Flights = () => {
+      const [tab, setTab] = useState('arrivals');
+      const [search, setSearch] = useState('');
+      const [sort, setSort] = useState('time'); 
+      
+      let data = tab === 'arrivals' ? [...flightArrivals] : [...flightDepartures];
+      
+      data = data.filter(f => 
+        f[1].toLowerCase().includes(search.toLowerCase()) || 
+        f[2].toLowerCase().includes(search.toLowerCase()) || 
+        f[3].toLowerCase().includes(search.toLowerCase())    
+      );
+
+      data.sort((a, b) => {
+        if(sort === 'time') return a[0].localeCompare(b[0]);
+        if(sort === 'airline') return a[2].localeCompare(b[2]);
+        return 0;
+      });
+
+      return (
+        <div>
+          <section className="flight-hero"><h1>{tab === 'arrivals' ? 'Arrival' : 'Departure'} Flight Listing</h1></section>
+          <div className="tabs">
+            <div className="search-wrap" style={{flex: 1}}>
+              <div className="search-box" style={{maxWidth: '100%'}}>
+                <span className="search-icon">🔍</span>
+                <input type="text" placeholder="Search by city, airline, or flight #..." value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+            </div>
+            <select onChange={e => setSort(e.target.value)} value={sort} style={{padding: '12px', borderRadius: '20px', border: '1px solid #ccc', outline: 'none', fontWeight: 'bold'}}>
+              <option value="time">Sort by Time</option>
+              <option value="airline">Sort by Airline (A-Z)</option>
+            </select>
+            <div className={`tab ${tab === 'arrivals' ? 'active' : ''}`} onClick={() => setTab('arrivals')}>Arrivals</div>
+            <div className={`tab ${tab === 'departures' ? 'active' : ''}`} onClick={() => setTab('departures')}>Departures</div>
+          </div>
+          <div className="table-head"><div>Time</div><div>Flight Information</div><div>Terminal</div><div>Gate/Belt</div><div>Status</div></div>
+          <div id="flightContainer">
+            {data.length > 0 ? data.map((f, i) => (
+              <div className="flight-row" key={i}>
+                <div style={{fontWeight: 'bold', fontSize: '18px'}}>{f[0]}</div>
+                <div className="flight-info"><img className="airline-logo" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=100" /><div><strong>{f[1]} · {f[2]}</strong><br/>{f[3]}</div></div>
+                <div>{f[4]}</div><div>{f[5]}</div><div><span className={`status ${f[6]}`}>{f[6].toUpperCase()}</span></div>
+              </div>
+            )) : <div className="no-results" style={{display:'block'}}>✈️ No flights found.</div>}
+          </div>
+        </div>
+      );
+    };
+
+    const DiscoverCard = ({ item, setModal }) => {
+      const { wishlist, toggleWishlist } = useContext(AppContext);
+      const isSaved = wishlist.some(w => w.id === item.id);
+      return (
+        <div className="card" onClick={() => setModal(item)}>
+          <button className={`heart-btn ${isSaved ? 'saved' : ''}`} onClick={(e) => { e.stopPropagation(); toggleWishlist(item); }}>
+            {isSaved ? '❤️' : '🤍'}
+          </button>
+          {item.badges && item.badges.length > 0 && (<div className="badges">{item.badges.map((b,i) => <span key={i} className="badge">{b}</span>)}</div>)}
+          <img src={item.img} alt={item.name}/>
+          <div className="card-body">
+            <span className="tag">{item.tag}</span>
+            <div className="card-title">{item.name}</div>
+            <div className="card-sub">{item.sub}</div>
+          </div>
+        </div>
+      )
+    };
+
+    const DineAndShop = () => {
+      const [loc, setLoc] = useState('all');
+      const [selectedPlace, setSelectedPlace] = useState(null);
+      const filteredData = dineData.filter(item => loc === 'all' || item.loc === loc);
+      return (
+        <div className="container">
+          <div className="page-title">Dine & Shop at SkyLink</div>
+          <div className="filters">
+            <select value={loc} onChange={e => setLoc(e.target.value)}>
+              <option value="all">All Terminals</option><option value="Jewel">Jewel</option><option value="T1">Terminal 1</option><option value="T2">Terminal 2</option><option value="T3">Terminal 3</option>
+            </select>
+          </div>
+          <div className="card-grid">
+            {filteredData.map(item => <DiscoverCard key={item.id} item={item} setModal={setSelectedPlace} />)}
+          </div>
+          <PlaceModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+        </div>
+      );
+    };
+
+    const Experience = () => {
+      const [loc, setLoc] = useState('all');
+      const [selectedPlace, setSelectedPlace] = useState(null);
+      const filteredData = expData.filter(item => loc === 'all' || item.loc === loc);
+      return (
+        <div className="container">
+          <div className="page-title">Things to Experience</div>
+          <div className="filters">
+            <select value={loc} onChange={e => setLoc(e.target.value)}>
+              <option value="all">All Terminals</option><option value="Jewel">Jewel</option><option value="T1">Terminal 1</option><option value="T2">Terminal 2</option><option value="T3">Terminal 3</option>
+            </select>
+          </div>
+          <div className="card-grid">
+            {filteredData.map(item => <DiscoverCard key={item.id} item={item} setModal={setSelectedPlace} />)}
+          </div>
+          <PlaceModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+        </div>
+      );
+    };
+
+    // FULLY RESTORED HELP COMPONENT
+    const Help = () => {
+      const navigate = useNavigate();
+      const [activeFaq, setActiveFaq] = useState(null);
+      
+      const faqs = [
+        { q: "What is the airport check-in time?", a: "Passengers are advised to check in at least 2–3 hours before departure for international flights and 2 hours for domestic flights." },
+        { q: "Is free Wi-Fi available?", a: "Yes, complimentary high-speed Wi-Fi is available throughout all terminals. Connect to the '#SkyLinkFreeWiFi' network." },
+        { q: "Where can I find lounges?", a: "Premium lounges are available in Terminals 1, 2, and 3 in both Public and Transit areas. Access can be purchased at the door or via airline loyalty programs." },
+        { q: "How do I report a lost item?", a: "Please visit the Lost & Found counter in Terminal 2 Arrival Hall, or email lostfound@skylink.com with a detailed description of your item." },
+        { q: "Are there baggage storage facilities?", a: "Yes, 24-hour left baggage counters are located in the arrival halls of all terminals. Rates depend on bag size and storage duration." },
+        { q: "Can I travel with my pet?", a: "Yes, SkyLink is pet-friendly. Please ensure your pet travels in an approved carrier and check with your specific airline for their pet policies." },
+        { q: "Do I need a transit visa?", a: "Transit visa requirements depend on your nationality and layover duration. Please check with your airline or the official immigration website before flying." },
+        { q: "How can I request wheelchair assistance?", a: "Special assistance should be requested through your airline at least 48 hours before your flight. Our staff will meet you at the departure drop-off point." },
+        { q: "Where can I park my car?", a: "We offer short-term and long-term parking across Terminals 1, 2, and 3. Valet parking is also available at the Terminal 3 departure level." },
+        { q: "Are there shower facilities available?", a: "Yes, shower facilities are available in the transit hotels and premium lounges located in Terminals 2 and 3." }
+      ];
+      
+      return (
+        <div>
+          <section className="help-hero"><h1>Help & Support</h1></section>
+          <div className="container">
+            
+            <div className="card map-card" onClick={() => navigate('/map')} style={{marginBottom: '40px', border: '2px solid #4f46e5', cursor: 'pointer', borderRadius: '18px', overflow: 'hidden'}}>
+              <img src="map.png" alt="Interactive Map" style={{width: '100%', height: '220px', objectFit: 'cover'}} onError={(e)=>{e.target.src='https://images.unsplash.com/photo-1581092919535-7146ff1a590c?q=80&w=1974'}} />
+              <div className="card-body" style={{padding: '20px'}}>
+                <div className="card-title" style={{fontSize: '22px', fontWeight: 'bold'}}>Airport Interactive Map</div>
+                <div className="info">Click to view terminal maps, gates, lounges and facilities.</div>
+              </div>
+            </div>
+            
+            <div className="grid">
+              {/* Linked to NEW Baggage Tracker Route */}
+              <div className="card" onClick={() => navigate('/baggage')}>
+                <img src="https://images.unsplash.com/photo-1581553673739-c4906b5d0de8?q=80&w=1974&auto=format&fit=crop" style={{width: '100%', height: '190px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="card-title">Live Baggage Tracker ➔</div>
+                  <div className="info">Track your luggage in real-time from check-in to carousel.</div>
+                </div>
+              </div>
+              <div className="card">
+                <img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=1974&auto=format&fit=crop" style={{width: '100%', height: '190px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="card-title">Lost & Found</div>
+                  <div className="info">📞 +91 98765 22222<br/>🏢 Terminal 2<br/>✉️ lostfound@skylink.com</div>
+                </div>
+              </div>
+              <div className="card">
+                <img src="https://images.unsplash.com/photo-1576765608866-5b51046452be?q=80&w=1974&auto=format&fit=crop" style={{width: '100%', height: '190px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="card-title">Special Assistance</div>
+                  <div className="info">📞 +91 98765 33333<br/>🏢 Terminal 3<br/>✉️ assistance@skylink.com</div>
+                </div>
+              </div>
+              <div className="card">
+                <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1974&auto=format&fit=crop" style={{width: '100%', height: '190px', objectFit: 'cover'}} />
+                <div className="card-body">
+                  <div className="card-title">Airport Facility</div>
+                  <div className="info">📞 +91 98765 44444<br/>🏢 All Terminals<br/>✉️ info@skylink.com</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="faq-section">
+              <div className="faq-title">Frequently Asked Questions</div>
+              <div className="faq-container">
+                {faqs.map((f, i) => (
+                  <div className={`faq-item ${activeFaq === i ? 'active' : ''}`} key={i}>
+                    <button className="faq-question" onClick={() => setActiveFaq(activeFaq === i ? null : i)}>
+                      {f.q} <span className="faq-icon">▾</span>
+                    </button>
+                    <div className="faq-answer"><p style={{paddingTop: '10px'}}>{f.a}</p></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // FEATURE: BAGGAGE TRACKER PAGE
+    const BaggageTracker = () => {
+      const [tag, setTag] = useState('');
+      const [tracking, setTracking] = useState(false);
+
+      const handleTrack = (e) => {
+        e.preventDefault();
+        setTracking(true);
+      };
+
+      return (
+        <div className="container" style={{maxWidth: '800px', margin: '0 auto'}}>
+          <div className="page-title">Live Baggage Tracker</div>
+          <p style={{color: '#666', marginBottom: '30px'}}>Enter your luggage tag number to see its real-time location.</p>
+          
+          <form className="search-box" style={{background: '#fff'}} onSubmit={handleTrack}>
+            <input type="text" placeholder="e.g., BAG-9921" required value={tag} onChange={e=>setTag(e.target.value)} style={{color: '#111'}} />
+            <button type="submit">Track Luggage</button>
+          </form>
+
+          {tracking && (
+            <div className="baggage-timeline">
+              <div className="timeline-step active">
+                <h4>Checked In</h4>
+                <p>SkyLink Check-in Counter, T2</p>
+              </div>
+              <div className="timeline-step active">
+                <h4>Screening Cleared</h4>
+                <p>Security Checkpoint Alpha</p>
+              </div>
+              <div className="timeline-step active">
+                <h4>Loaded on Plane</h4>
+                <p>Flight AI-440</p>
+              </div>
+              <div className="timeline-step">
+                <h4>Arrived at Destination</h4>
+                <p>Pending Arrival...</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const AirportMap = () => (
+      <div className="container" style={{textAlign: 'center'}}>
+        <div className="page-title">Terminal Map</div>
+        <p style={{marginBottom: '20px', color: '#666'}}>Navigate the terminals easily.</p>
+        <img src="map.png" alt="Airport Map" style={{maxWidth: '100%', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)'}} onError={(e)=>{e.target.src='https://images.unsplash.com/photo-1581092919535-7146ff1a590c?q=80&w=1974'}} />
+      </div>
+    );
+
+    const Booking = () => {
+      const { setBookedFlight, points, setPoints, addToast } = useContext(AppContext);
+      const [step, setStep] = useState(1);
+      const [selectedSeat, setSelectedSeat] = useState(null);
+      const navigate = useNavigate();
+
+      const [bName, setBName] = useState('');
+      const [bFrom, setBFrom] = useState('');
+      const [bTo, setBTo] = useState('');
+      const [bDate, setBDate] = useState('');
+      const [bClass, setBClass] = useState('Economy');
+
+      const today = new Date().toISOString().split('T')[0]; 
+
+      const seats = Array.from({length: 16}, (_, i) => ({
+        id: i + 1, number: `${Math.floor(i/4) + 1}${['A','B','C','D'][i%4]}`, occupied: Math.random() > 0.7 
+      }));
+
+      const handleFormSubmit = (e) => {
+        e.preventDefault();
+        if(bDate < today) return addToast("You cannot book a flight in the past!", "error");
+        setStep(2);
+      };
+
+      const completeBooking = () => {
+        if(!selectedSeat) return addToast("Please select a seat!", "error");
+        setStep(3); 
+      };
+
+      const finalizePayment = () => {
+        setBookedFlight({ name: bName, from: bFrom, to: bTo, date: bDate, cls: bClass, seat: selectedSeat });
+        setPoints(points + 500); 
+        addToast(`Booking Confirmed! Earned 500 Points.`, "success");
+        navigate('/profile'); 
+      }
+
+      return (
+        <div className="bg-booking">
+          <section className="form-section">
+            <div className="page-title" style={{textAlign: 'center'}}>Flight Booking</div>
+            
+            <div className="progress-container">
+              <div className={`progress-step ${step >= 1 ? 'active' : ''}`}>1<span className="progress-label">Details</span></div>
+              <div className={`progress-step ${step >= 2 ? 'active' : ''}`}>2<span className="progress-label">Seats</span></div>
+              <div className={`progress-step ${step >= 3 ? 'active' : ''}`}>3<span className="progress-label">Confirm</span></div>
+            </div>
+
+            {step === 1 && (
+              <form className="form-card" onSubmit={handleFormSubmit}>
+                <h3 style={{marginBottom:'10px'}}>Passenger Details</h3>
+                <input type="text" placeholder="Passenger Name" required value={bName} onChange={e=>setBName(e.target.value)} />
+                <input type="text" placeholder="From City (e.g. Chennai)" required value={bFrom} onChange={e=>setBFrom(e.target.value)} />
+                <input type="text" placeholder="To City (e.g. Dubai)" required value={bTo} onChange={e=>setBTo(e.target.value)} />
+                <input type="date" required min={today} value={bDate} onChange={e=>setBDate(e.target.value)} />
+                <select required value={bClass} onChange={e=>setBClass(e.target.value)}>
+                  <option>Economy</option><option>Business</option><option>First Class</option>
+                </select>
+                <button type="submit" className="login-submit-btn">Continue to Seats</button>
+              </form>
+            )}
+
+            {step === 2 && (
+              <div className="form-card" style={{textAlign:'center'}}>
+                <h3 style={{marginBottom:'10px'}}>Select Your Seat</h3>
+                <p style={{fontSize:'12px', color:'#666'}}>Front of plane</p>
+                <div className="seat-grid">
+                  {seats.map(seat => (
+                    <div key={seat.id} className={`seat ${seat.occupied ? 'occupied' : ''} ${selectedSeat === seat.number ? 'selected' : ''}`} onClick={() => !seat.occupied && setSelectedSeat(seat.number)}>
+                      {seat.number}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={completeBooking} className="login-submit-btn" style={{marginTop:'20px'}}>Confirm Seat ({selectedSeat || 'None'})</button>
+                <button onClick={() => setStep(1)} className="login-submit-btn" style={{marginTop:'10px', background:'transparent', color:'#001f7a', border:'1px solid #001f7a'}}>Back</button>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="form-card" style={{textAlign:'center'}}>
+                <h3 style={{marginBottom:'10px'}}>Confirm & Pay</h3>
+                <p><strong>Route:</strong> {bFrom} to {bTo}</p>
+                <p><strong>Seat:</strong> {selectedSeat} ({bClass})</p>
+                <p style={{fontSize: '24px', fontWeight: 'bold', color: '#001f7a', margin: '20px 0'}}>Total: $450.00</p>
+                <button onClick={finalizePayment} className="login-submit-btn">Pay & Generate Ticket</button>
+                <button onClick={() => setStep(2)} className="login-submit-btn" style={{marginTop:'10px', background:'transparent', color:'#001f7a', border:'1px solid #001f7a'}}>Back to Seats</button>
+              </div>
+            )}
+          </section>
+        </div>
+      );
+    };
+
+    const Login = () => {
+      const { setUser, addToast } = useContext(AppContext);
+      const navigate = useNavigate();
+      const [isSignup, setIsSignup] = useState(false);
+      const [pwd, setPwd] = useState(''); 
+
+      const getStrength = (p) => {
+        if(p.length === 0) return '';
+        if(p.length < 6) return 'pwd-weak';
+        if(p.length < 10 || !/\d/.test(p)) return 'pwd-med';
+        return 'pwd-strong';
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const userName = isSignup ? document.getElementById('firstName').value : "Traveler";
+        setUser(userName);
+        addToast(isSignup ? "Registration Successful!" : "Login successful!", "success");
+        navigate("/profile");
+      };
+
+      return (
+        <div className="login-body">
+          <div className="login-card">
+            {!isSignup ? (
+              <>
+                <div className="login-header"><h2>Log in to your account</h2></div>
+                <form onSubmit={handleSubmit} style={{textAlign: 'left'}}>
+                  <label>Email address</label><input type="email" required />
+                  <label>Password</label><input type="password" required />
+                  <button type="submit" className="login-submit-btn">Login</button>
+                </form>
+                <div className="divider">OR</div>
+                <p className="signup-text" onClick={() => setIsSignup(true)}>Sign up for a new account</p>
+              </>
+            ) : (
+              <div className="premium-form">
+                <div className="form-header"><h2>Create Account</h2></div>
+                <form onSubmit={handleSubmit}>
+                  <div className="input-group"><label>First Name</label><input type="text" id="firstName" required /></div>
+                  <div className="input-group"><label>Last Name</label><input type="text" required /></div>
+                  <div className="input-group"><label>Mobile</label><input type="text" required /></div>
+                  <div className="input-group"><label>Password</label>
+                    <input type="password" required value={pwd} onChange={e => setPwd(e.target.value)} />
+                  </div>
+                  {pwd.length > 0 && <div className={`pwd-strength ${getStrength(pwd)}`}></div>}
+                  <button type="submit" className="login-submit-btn">Complete Registration</button>
+                </form>
+                <p className="signup-text" onClick={() => setIsSignup(false)}>Already have an account? Login here</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ===================== MAIN APP ROUTER =====================
+    const App = () => {
+      return (
+        <AppProvider>
+          <HashRouter>
+            <ToastContainer />
+            <ScrollToTop />
+            <Chatbot />
+            <Navbar />
+            <div className="main-content" style={{minHeight: '80vh'}}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/flights" element={<Flights />} />
+                <Route path="/dine" element={<DineAndShop />} />
+                <Route path="/experience" element={<Experience />} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/booking" element={<Booking />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/map" element={<AirportMap />} />
+                <Route path="/baggage" element={<BaggageTracker />} /> {/* NEW ROUTE */}
+              </Routes>
+            </div>
+            <Footer />
+          </HashRouter>
+        </AppProvider>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
